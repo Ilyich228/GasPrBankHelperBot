@@ -1,43 +1,24 @@
-from abc import ABC, abstractmethod
-import telebot.types
-import survey
+from enum import Enum
 
 states = {}
 
 
-class State(ABC):
-    def __init__(self, bot, chat_id, data={}):
-        self.bot = bot
-        self.chat_id = chat_id
-        self.data = data
+class States(Enum):
+    S_IDLE = '0'
+    S_START = '1'
+    S_IS_REGISTERED = '2'
+    S_REGISTER = '3'
 
-        self.on_state_loaded()
-
-    def change_state(self, state):
-        states[self.chat_id] = state
-
-    def on_state_loaded(self):
-        pass
-
-    @abstractmethod
-    def on_message(self, message):
-        pass
+    S_START_POLL = '4'
+    S_POLL = '5'
 
 
-class StartState(State):
-    def on_state_loaded(self):
-        if survey.questions_queue:
-            keyboard = telebot.types.InlineKeyboardMarkup()
-            ok_btn = telebot.types.InlineKeyboardButton(text='Пройти опрос.')
-            no_btn = telebot.types.InlineKeyboardButton(text='Позже.')
-            keyboard.add(ok_btn)
-            keyboard.add(no_btn)
-            self.bot.send_message(self.chat_id, 'Хотите поучавствовать в опросе?', reply_markup=keyboard)
-        else:
-            pass  # skip survey
+def get_state(user_id):     # TODO database
+    if user_id in states:
+        return states[user_id]
+    else:
+        return States.S_START
 
-    def on_message(self, message):
-        if message.text == 'Пройти опрос.':
-            self.change_state(survey.SurveyState())
-        else:
-            pass    # skip survey
+
+def set_state(user_id, state):      # TODO database
+    states[user_id] = state
