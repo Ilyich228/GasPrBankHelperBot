@@ -1,5 +1,6 @@
 import telebot
 import poll
+from utils import YES_NO_KEYBOARD_MARKUP
 from states import *
 
 with open('token.txt') as f:
@@ -8,71 +9,43 @@ with open('token.txt') as f:
 
 @bot.message_handler(commands=['start'])
 def start_handler(message):
-    keyboard = telebot.types.InlineKeyboardMarkup()
-    ok_btn = telebot.types.InlineKeyboardButton(text='Да.', callback_data='1')
-    no_btn = telebot.types.InlineKeyboardButton(text='Нет.', callback_data='2')
-    keyboard.row(ok_btn, no_btn)
-    bot.send_message(message.chat.id, 'Вы являетесь клиентом гаспромбанка?', reply_markup=keyboard)
+    bot.send_message(message.chat.id, 'Вы являетесь клиентом гаспромбанка?', reply_markup=YES_NO_KEYBOARD_MARKUP)
 
     set_state(message.chat.id, States.S_IS_REGISTERED)
 
 
 @bot.callback_query_handler(func=lambda call: get_state(call.message.chat.id) == States.S_IS_REGISTERED)
 def callback_handler(call):
-    if call.data == '1':
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text='Я бы предложил войти в аккаунт если бы знал как.')
+    if call.data == 'yes':
+        bot.edit_message_text('Я бы предложил войти в аккаунт если бы знал как.',
+                              call.message.chat.id, call.message.message_id)
 
-        if poll.has_questions():
-            keyboard = telebot.types.InlineKeyboardMarkup()
-            ok_btn = telebot.types.InlineKeyboardButton(text='Да.', callback_data='1')
-            no_btn = telebot.types.InlineKeyboardButton(text='Нет.', callback_data='2')
-            keyboard.row(ok_btn, no_btn)
-
-            bot.send_message(text='Вы хотите принять участие в опросе?', chat_id=call.message.chat.id,
-                             reply_markup=keyboard)
-
-            set_state(call.message.chat.id, States.S_START_POLL)
-        else:
-            set_state(call.message.chat.id, States.S_IDLE)
+        poll.start_poll(bot, call.message.chat.id)
     else:
-        keyboard = telebot.types.InlineKeyboardMarkup()
-        ok_btn = telebot.types.InlineKeyboardButton(text='Да.', callback_data='1')
-        no_btn = telebot.types.InlineKeyboardButton(text='Нет.', callback_data='2')
-        keyboard.row(ok_btn, no_btn)
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text="Вы хотите зарегистрироватся?", reply_markup=keyboard)
+        bot.edit_message_text('Вы хотите зарегистрироватся?', call.message.chat.id, call.message.message_id,
+                              reply_markup=YES_NO_KEYBOARD_MARKUP)
 
         set_state(call.message.chat.id, States.S_REGISTER)
 
 
 @bot.callback_query_handler(func=lambda call: get_state(call.message.chat.id) == States.S_REGISTER)
 def callback_handler(call):
-    if call.data == '1':
+    if call.data == 'yes':
         bot.edit_message_text('Я хз как.', call.message.chat.id, call.message.message_id)
     else:
         bot.edit_message_text('Некоторые функции будут недоступны.', call.message.chat.id, call.message.message_id)
 
-    if poll.has_questions():
-        keyboard = telebot.types.InlineKeyboardMarkup()
-        ok_btn = telebot.types.InlineKeyboardButton(text='Да.', callback_data='1')
-        no_btn = telebot.types.InlineKeyboardButton(text='Нет.', callback_data='2')
-        keyboard.row(ok_btn, no_btn)
-
-        bot.send_message(text='Вы хотите принять участие в опросе?', chat_id=call.message.chat.id,
-                         reply_markup=keyboard)
-
-        set_state(call.message.chat.id, States.S_START_POLL)
-    else:
-        set_state(call.message.chat.id, States.S_IDLE)
+    poll.start_poll(bot, call.message.chat.id)
 
 
 @bot.callback_query_handler(func=lambda call: get_state(call.message.chat.id) == States.S_START_POLL)
 def callback_handler(call):
-    if call.data == '1':
+    if call.data == 'yes':
         poll.show_question(bot, call.message.chat.id)
         set_state(call.message.chat.id, States.S_POLL)
     else:
+        bot.edit_message_text('Вы можете пройти опрос позже набрав команду которую я еще не придумал.',  # /poll ?
+                              call.message.chat.id, call.message.message_id)
         set_state(call.message.chat.id, States.S_IDLE)
 
 
@@ -89,4 +62,3 @@ def callback_handler(call):
 if __name__ == '__main__':
     print('start')
     bot.polling()
-    print('end')
