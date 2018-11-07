@@ -14,6 +14,16 @@ def start_handler(message):
     set_state(message.chat.id, States.S_IS_REGISTERED)
 
 
+@bot.message_handler(commands=['poll'])
+def poll_handler(message):
+    if poll.has_questions():
+        print('poll')
+        poll.show_question(bot, message.chat.id)
+        set_state(message.chat.id, States.S_POLL)
+    else:
+        bot.send_message(message.chat.id, 'Извините опрос сейчас недоступен.')
+
+
 @bot.callback_query_handler(func=lambda call: get_state(call.message.chat.id) == States.S_IS_REGISTERED)
 def callback_handler(call):
     if call.data == 'yes':
@@ -44,7 +54,7 @@ def callback_handler(call):
         poll.show_question(bot, call.message.chat.id)
         set_state(call.message.chat.id, States.S_POLL)
     else:
-        bot.edit_message_text('Вы можете пройти опрос позже набрав команду которую я еще не придумал.',  # /poll ?
+        bot.edit_message_text('Вы можете пройти опрос позже набрав команду /poll.',
                               call.message.chat.id, call.message.message_id)
         set_state(call.message.chat.id, States.S_IDLE)
 
@@ -56,9 +66,16 @@ def callback_handler(call):
     if poll.has_questions():
         poll.show_question(bot, call.message.chat.id)
     else:
+        bot.message_handler('Спасибо за прохождение опроса.', call.message.chat.id, call.message.message_id)
         set_state(call.message.char.id, States.S_IDLE)
+
+
+@bot.message_handler(func=lambda message: get_state(message.chat.id) == States.S_IDLE)
+def text_handler(message):
+    pass
 
 
 if __name__ == '__main__':
     print('start')
+
     bot.polling()

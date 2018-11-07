@@ -4,13 +4,13 @@ states = {}
 
 
 class States(Enum):
-    S_IDLE = '0'
+    S_IDLE = 0
 
-    S_IS_REGISTERED = '1'
-    S_REGISTER = '2'
+    S_IS_REGISTERED = 1
+    S_REGISTER = 2
 
-    S_START_POLL = '3'
-    S_POLL = '4'
+    S_START_POLL = 3
+    S_POLL = 4
 
 
 def get_state(user_id):     # TODO database
@@ -22,3 +22,4 @@ def get_state(user_id):     # TODO database
 
 def set_state(user_id, state):      # TODO database
     states[user_id] = state
+
