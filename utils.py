@@ -17,3 +17,6 @@ def create_keyboard_markup(*args):
 
 YES_NO_KEYBOARD_MARKUP = create_keyboard_markup({'text': 'Да.', 'callback_data': 'yes'},
                                                 {'text': 'Нет.', 'callback_data': 'no'})
+
+RETURN_KEYBOARD_MARKUP = create_keyboard_markup({'text': '<< Назад.', 'callback_data': 'back'})
+OK_KEYBOARD_MARKUP = create_keyboard_markup({'text': 'OK.', 'callback_data': 'ok'})

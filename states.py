@@ -9,8 +9,9 @@ class States(Enum):
     S_IS_REGISTERED = 1
     S_REGISTER = 2
 
-    S_START_POLL = 3
-    S_POLL = 4
+    S_POLL = 3
+
+    S_INFO = 4
 
 
 def get_state(user_id):     # TODO database
